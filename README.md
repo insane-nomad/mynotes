@@ -8,3 +8,7 @@
 <li>Bootstrap</li>
 <li>Git и Github</li>
 </ul>
+<h1 class="code-line" data-line-start="0" data-line-end="1">ToDo</h1>
+<p>Разбить main.go согласно рекомендациям языка</p>
+<p>Сделать пагинацию</p>
+<p>Сделать удаление записей из БД</p>
