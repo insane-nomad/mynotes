@@ -17,5 +17,10 @@
 		{{ unescape .Table}}
 	</tbody>
 </table>
+<nav aria-label="Page navigation example" style="">
+	<ul class="pagination justify-content-center btn-sm" style="position: static; text-align: center;">	
+		{{ unescape .Pagination}}
+	</ul>
+</nav>
 
 {{template "partials/footer" .}}
