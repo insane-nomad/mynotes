@@ -36,7 +36,6 @@ func main() {
 		CompressedFileSuffix: ".compressed.gz",
 	})
 
-	//app.Static("ui/html/static", "ui/html/static")   //рабочая строка
 	app.Static("ui/html/static", "ui/html/static", fiber.Static{
 		Compress:      true,
 		ByteRange:     true,
@@ -51,8 +50,8 @@ func main() {
 	app.Get("/", MainPageHandler)
 	app.Get("/layout", LayoutHandler)
 	app.Get("/add", AddHandler)
-
 	app.Get("/pages/:id<range(1,1000)>", PaginationHandler)
+
 	app.Use(Return404Handler)
 
 	// start server on 127.0.0.1:3000
@@ -74,7 +73,6 @@ func PaginationHandler(c *fiber.Ctx) error {
 		table = append(table, fmt.Sprintf("<tr><th scope=\"row\">%v</th><td>%v</td><td>%v</td></tr>",
 			value.ID, value.CreatedAt.Format("2006/01/02 15:04"), value.Text))
 	}
-	joinedLines := strings.Join(table, "")
 	if id > 1 {
 		pages = append(pages, fmt.Sprintf("<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/%v\">Previous</a></li>", id-1))
 	}
@@ -82,6 +80,7 @@ func PaginationHandler(c *fiber.Ctx) error {
 	for i := 1; i <= pageCounter; i++ {
 		pages = append(pages, fmt.Sprintf("<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/%v\">%[1]v</a></li>", i))
 	}
+
 	if id < pageCounter {
 		pages = append(pages, fmt.Sprintf("<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/%v\">Next</a></li>", id+1))
 	}
@@ -92,6 +91,8 @@ func PaginationHandler(c *fiber.Ctx) error {
 			"Title": "Error 404. Not found!",
 		}, "errors/404")
 	}
+
+	joinedLines := strings.Join(table, "")
 	pagination := strings.Join(pages, "")
 
 	return c.Render("index", fiber.Map{
@@ -105,19 +106,19 @@ func PaginationHandler(c *fiber.Ctx) error {
 func MainPageHandler(c *fiber.Ctx) error {
 	var table []string
 	var pages []string
-	result, pageCounter, _ := database.GetNotes(0)
 
+	result, pageCounter, _ := database.GetNotes(0)
 	for _, value := range result {
 		table = append(table, fmt.Sprintf("<tr><th scope=\"row\">%v</th><td>%v</td><td>%v</td></tr>",
 			value.ID, value.CreatedAt.Format("2006/01/02 15:04"), value.Text))
 	}
-	joinedLines := strings.Join(table, "")
 
 	for i := 1; i <= pageCounter; i++ {
 		pages = append(pages, fmt.Sprintf("<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/%v\">%[1]v</a></li>", i))
 	}
 	pages = append(pages, "<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/2\">Next</a></li>")
 
+	joinedLines := strings.Join(table, "")
 	pagination := strings.Join(pages, "")
 
 	return c.Render("index", fiber.Map{
@@ -129,14 +130,12 @@ func MainPageHandler(c *fiber.Ctx) error {
 }
 
 func AddHandler(c *fiber.Ctx) error {
-	// Render index
 	return c.Render("add", fiber.Map{
 		"Title": "Add note",
 	})
 }
 
 func LayoutHandler(c *fiber.Ctx) error {
-	// Render index within layouts/main
 	return c.Render("index2", fiber.Map{
 		"Title": "Hello, World!",
 	}, "layouts/main")
@@ -150,17 +149,8 @@ func Return404Handler(c *fiber.Ctx) error {
 }
 
 func AddnoteHandler(c *fiber.Ctx) error {
+	err := database.CreateNote(template.HTMLEscaper(c.FormValue("confirmationText")))
 
-	/*убираем весь колхоз и получаем данные правильно
-	confirmationText, err := url.ParseQuery(string(c.Body()))
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprintf(c, "%v\n", c.FormValue("confirmationText"))
-	result := strings.Join(confirmationText["confirmationText"], " ")
-	*/
-	err := database.CreateNote(c.FormValue("confirmationText"))
 	if err != nil {
 		return err
 	}

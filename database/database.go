@@ -35,7 +35,6 @@ func GetAllNotes() ([]Note, error) {
 	}
 
 	db.Find(&notes) // get all data
-	//db.Limit(5).Offset(0).Find(&notes)
 	return notes, nil
 }
 
@@ -52,14 +51,10 @@ func GetNotes(start int) ([]Note, int, error) {
 	}
 
 	getCount := db.Find(&notes)
-	pageCount = float64(getCount.RowsAffected) / float64(offset) // returns count of records found
+	pageCount = float64(getCount.RowsAffected) / float64(offset)
 	pageCount = math.Ceil(pageCount)
 
 	db.Limit(offset).Offset(cstart).Find(&notes)
-	//res := db.First(&notes)
-	//result.RowsAffected // returns count of records found
-	//fmt.Printf("%v\n", res.RowsAffected)
-	//db.Limit(5).Offset(5).Find(&notes)
 	return notes, int(pageCount), nil
 }
 
