@@ -5,12 +5,17 @@ import (
 	"html/template"
 	"log"
 	"mynotes/database"
+
+	//"os"
 	"strconv"
 
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
+
 	"github.com/gofiber/template/html"
 )
 
@@ -36,6 +41,9 @@ func main() {
 		CompressedFileSuffix: ".compressed.gz",
 	})
 
+	app.Use(requestid.New())
+	app.Use(logger.New())
+
 	app.Static("ui/html/static", "ui/html/static", fiber.Static{
 		Compress:      true,
 		ByteRange:     true,
@@ -51,6 +59,10 @@ func main() {
 	app.Get("/layout", LayoutHandler)
 	app.Get("/add", AddHandler)
 	app.Get("/pages/:id<range(1,1000)>", PaginationHandler)
+
+	//app.Use(logger.New(logger.Config{
+	//	Format: "[${ip}]:${port} ${status} - ${method} ${path} ${referer}\n",
+	//}))
 
 	app.Use(Return404Handler)
 
@@ -86,10 +98,11 @@ func PaginationHandler(c *fiber.Ctx) error {
 	}
 
 	if id > pageCounter {
-		return c.Status(fiber.StatusNotFound).Render("index", fiber.Map{
+		//return c.Redirect("/404")
+		return c.Status(fiber.StatusNotFound).Render("errors/404", fiber.Map{
 			"Error": "Error 404. Not found!",
 			"Title": "Error 404. Not found!",
-		}, "errors/404")
+		})
 	}
 
 	joinedLines := strings.Join(table, "")
@@ -142,10 +155,10 @@ func LayoutHandler(c *fiber.Ctx) error {
 }
 
 func Return404Handler(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusNotFound).Render("index", fiber.Map{
+	return c.Status(fiber.StatusNotFound).Render("errors/404", fiber.Map{
 		"Error": "Error 404. Not found!",
 		"Title": "Error 404. Not found!",
-	}, "errors/404")
+	})
 }
 
 func AddnoteHandler(c *fiber.Ctx) error {
