@@ -5,17 +5,13 @@ import (
 	"html/template"
 	"log"
 	"mynotes/database"
-
-	//"os"
 	"strconv"
-
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-
 	"github.com/gofiber/template/html"
 )
 
@@ -59,6 +55,7 @@ func main() {
 	app.Get("/layout", LayoutHandler)
 	app.Get("/add", AddHandler)
 	app.Get("/pages/:id<range(1,1000)>", PaginationHandler)
+	app.Get("/delnote/:id<range(1,10000)>", DelNoteHandler)
 
 	//app.Use(logger.New(logger.Config{
 	//	Format: "[${ip}]:${port} ${status} - ${method} ${path} ${referer}\n",
@@ -69,6 +66,25 @@ func main() {
 	// start server on 127.0.0.1:3000
 	log.Fatal(app.Listen(":3000"))
 
+}
+
+func DelNoteHandler(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id") // int 123 and no error
+	if err != nil {
+		return err
+	}
+
+	err = database.DelNotes(id)
+	if err != nil {
+		return err
+	}
+
+	return c.Render("deleted", fiber.Map{
+		"Title": "Add note",
+		"ID":    id,
+	})
+	//fmt.Fprintf(c, "%v\n", id)
+	//return nil
 }
 
 func PaginationHandler(c *fiber.Ctx) error {
@@ -82,8 +98,9 @@ func PaginationHandler(c *fiber.Ctx) error {
 	result, pageCounter, _ := database.GetNotes(id)
 
 	for _, value := range result {
-		table = append(table, fmt.Sprintf("<tr><th scope=\"row\">%v</th><td>%v</td><td>%v</td></tr>",
-			value.ID, value.CreatedAt.Format("2006/01/02 15:04"), value.Text))
+		table = append(table, fmt.Sprintf(`<tr><th scope="row">%v</th><td>%v</td><td>%v</td>
+		<td><a class="btn btn-outline-warning" style="float: right;" href="/delnote/%[1]v" role="button">
+		Delete</a></td></tr>`, value.ID, value.CreatedAt.Format("2006/01/02 15:04"), value.Text))
 	}
 	if id > 1 {
 		pages = append(pages, fmt.Sprintf("<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/%v\">Previous</a></li>", id-1))
@@ -122,8 +139,9 @@ func MainPageHandler(c *fiber.Ctx) error {
 
 	result, pageCounter, _ := database.GetNotes(0)
 	for _, value := range result {
-		table = append(table, fmt.Sprintf("<tr><th scope=\"row\">%v</th><td>%v</td><td>%v</td></tr>",
-			value.ID, value.CreatedAt.Format("2006/01/02 15:04"), value.Text))
+		table = append(table, fmt.Sprintf(`<tr><th scope="row">%v</th><td>%v</td><td>%v</td>
+		<td><a class="btn btn-outline-warning" style="float: right;" href="/delnote/%[1]v" role="button">
+		Delete</a></td></tr>`, value.ID, value.CreatedAt.Format("2006/01/02 15:04"), value.Text))
 	}
 
 	for i := 1; i <= pageCounter; i++ {
@@ -163,7 +181,6 @@ func Return404Handler(c *fiber.Ctx) error {
 
 func AddnoteHandler(c *fiber.Ctx) error {
 	err := database.CreateNote(template.HTMLEscaper(c.FormValue("confirmationText")))
-
 	if err != nil {
 		return err
 	}
@@ -171,5 +188,4 @@ func AddnoteHandler(c *fiber.Ctx) error {
 	return c.Render("success", fiber.Map{
 		"Title": "Add note",
 	})
-
 }

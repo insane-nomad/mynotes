@@ -40,7 +40,7 @@ func GetAllNotes() ([]Note, error) {
 
 func GetNotes(start int) ([]Note, int, error) {
 	var notes []Note
-	offset := 5
+	offset := 10
 	cstart := start - 1
 	cstart = cstart * offset
 	var pageCount float64
@@ -67,5 +67,17 @@ func CreateNote(text string) error {
 	}
 	db.Create(&Note{Text: text})
 
+	return nil
+}
+
+func DelNotes(id int) error {
+	var notes []Note
+
+	db, err := gorm.Open(sqlite.Open("mynotes.db"), &gorm.Config{})
+	if err != nil {
+		return err
+	}
+
+	db.Delete(&notes, id)
 	return nil
 }
