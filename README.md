@@ -10,7 +10,7 @@
 </ul>
 <h1 class="code-line" data-line-start="0" data-line-end="1">ToDo</h1>
 <p>Разбить main.go согласно рекомендациям языка</p>
-<p>Сделать пагинацию</p>
-<p>Сделать удаление записей из БД</p>
+<p>Сделать пагинацию - done</p>
+<p>Сделать удаление записей из БД - done</p>
 <h1 class="code-line" data-line-start="0" data-line-end="1">как запустить</h1>
 <p>Запустить команду go run main.go и перейти по ссылкеhttp://127.0.0.1:3000</p>
