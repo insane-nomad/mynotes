@@ -2,12 +2,18 @@ package database
 
 import (
 	//	"fmt"
+	// "log"
 	"math"
+
+	// "os"
 	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
+
+const dbName string = "mynotes.db"
 
 type Note struct {
 	ID        uint `gorm:"primarykey"`
@@ -15,8 +21,11 @@ type Note struct {
 	Text      string
 }
 
+type notes []Note
+
 func InitDatabase() error {
-	db, err := gorm.Open(sqlite.Open("mynotes.db"), &gorm.Config{})
+
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		return err
 	}
@@ -26,26 +35,24 @@ func InitDatabase() error {
 	return nil
 }
 
-func GetAllNotes() ([]Note, error) {
-	var notes []Note
-
-	db, err := gorm.Open(sqlite.Open("mynotes.db"), &gorm.Config{})
-	if err != nil {
-		return notes, err
-	}
-
-	db.Find(&notes) // get all data
-	return notes, nil
-}
-
-func GetNotes(start int) ([]Note, int, error) {
-	var notes []Note
+func GetNotes(start int) (notes, int, error) {
+	// newLogger := logger.New(
+	// 	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	// 	logger.Config{
+	// 		SlowThreshold:             time.Second, // Slow SQL threshold
+	// 		LogLevel:                  logger.Info, // Log level
+	// 		IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
+	// 		Colorful:                  false,       // Disable color
+	// 	},
+	// )
+	var notes notes
 	offset := 10
-	cstart := start - 1
-	cstart = cstart * offset
+	cstart := (start - 1) * offset
 	var pageCount float64
 
-	db, err := gorm.Open(sqlite.Open("mynotes.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
+		// Logger: newLogger,
+	})
 	if err != nil {
 		return notes, 0, err
 	}
@@ -61,7 +68,9 @@ func GetNotes(start int) ([]Note, int, error) {
 func CreateNote(text string) error {
 	//var newNotes = Note{Text: text}
 
-	db, err := gorm.Open(sqlite.Open("mynotes.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		return err
 	}
@@ -71,9 +80,11 @@ func CreateNote(text string) error {
 }
 
 func DelNotes(id int) error {
-	var notes []Note
+	var notes notes
 
-	db, err := gorm.Open(sqlite.Open("mynotes.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		return err
 	}
