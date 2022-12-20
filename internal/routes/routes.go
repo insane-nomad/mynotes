@@ -37,7 +37,8 @@ func PaginationHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	result, pageCounter, _ := database.GetNotes(id)
+	//result, pageCounter, _ := database.GetNotes(id)
+	result, pageCounter, _ := (&database.SqlHandler{}).GetNotes(id)
 
 	for _, value := range result {
 		table = append(table, fmt.Sprintf(`<tr><th scope="row">%v</th><td>%v</td><td>%v</td>
@@ -76,27 +77,26 @@ func PaginationHandler(c *fiber.Ctx) error {
 }
 
 func MainPageHandler(c *fiber.Ctx) error {
-	var table []string
+	//	var table []string
 	var pages []string
 
-	result, pageCounter, _ := database.GetNotes(0)
-	for _, value := range result {
-		table = append(table, fmt.Sprintf(`<tr><th scope="row">%v</th><td>%v</td><td>%v</td>
-		<td><a class="btn btn-outline-warning" style="float: right;" href="/delnote/%[1]v" role="button">
-		Delete</a></td></tr>`, value.ID, value.CreatedAt.Format("2006/01/02 15:04"), value.Text))
-	}
-
+	result, pageCounter, _ := (&database.SqlHandler{}).GetNotes(0)
+	//date: = database.Note{}.CreatedAt.Format("2006/01/02 15:04")
 	for i := 1; i <= pageCounter; i++ {
 		pages = append(pages, fmt.Sprintf("<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/%v\">%[1]v</a></li>", i))
 	}
 	pages = append(pages, "<li class=\"page-item\"><a class=\"page-link\" href=\"/pages/2\">Next</a></li>")
 
-	joinedLines := strings.Join(table, "")
 	pagination := strings.Join(pages, "")
+
+	date := fmt.Sprint("%v", database.Note{}.CreatedAt.Format("2006/01/02 15:04"))
 
 	return c.Render("index", fiber.Map{
 		"Title":      "Заметки",
-		"Table":      joinedLines,
+		"result":     result,
+		"ID":         (&database.Note{}).ID,
+		"Text":       (&database.Note{}).Text,
+		"CreatedAt":  date,
 		"Pagination": pagination,
 	})
 	//return nil

@@ -15,7 +15,11 @@
 		</tr>
 	</thead>
 	<tbody>
-		{{ unescape .Table}}
+		 {{range .result}}
+			<tr><th scope="row">{{.ID}}</th><td>{{.CreatedAt}}</td><td>{{.Text}}</td>
+			<td><a class="btn btn-outline-warning" style="float: right;" href="/delnote/{{.ID}}" role="button">
+			Delete</a></td></tr>
+	 	{{end}}
 	</tbody>
 </table>
 <nav aria-label="Page navigation example" style="">

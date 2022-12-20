@@ -15,8 +15,7 @@ import (
 
 func main() {
 	// Create a new database
-	dbErr := database.InitDatabase()
-
+	dbErr := (&database.SqlHandler{}).InitDatabase()
 	if dbErr != nil {
 		panic(dbErr)
 	}

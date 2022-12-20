@@ -23,19 +23,22 @@ type Note struct {
 
 type notes []Note
 
-func InitDatabase() error {
+type SqlHandler struct {
+	db *gorm.DB
+}
 
-	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+func (s *SqlHandler) InitDatabase() error {
+	var err error
+	s.db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		return err
 	}
 
-	db.AutoMigrate(&Note{})
-
+	s.db.AutoMigrate(&Note{})
 	return nil
 }
 
-func GetNotes(start int) (notes, int, error) {
+func (s *SqlHandler) GetNotes(start int) (notes, int, error) {
 	// newLogger := logger.New(
 	// 	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 	// 	logger.Config{
@@ -46,22 +49,23 @@ func GetNotes(start int) (notes, int, error) {
 	// 	},
 	// )
 	var notes notes
+	var err error
 	offset := 10
 	cstart := (start - 1) * offset
 	var pageCount float64
 
-	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
-		// Logger: newLogger,
+	s.db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{
+		//		Logger: newLogger,
 	})
 	if err != nil {
 		return notes, 0, err
 	}
 
-	getCount := db.Find(&notes)
+	getCount := s.db.Find(&notes)
 	pageCount = float64(getCount.RowsAffected) / float64(offset)
 	pageCount = math.Ceil(pageCount)
 
-	db.Limit(offset).Offset(cstart).Find(&notes)
+	s.db.Limit(offset).Offset(cstart).Find(&notes)
 	return notes, int(pageCount), nil
 }
 
@@ -83,7 +87,7 @@ func DelNotes(id int) error {
 	var notes notes
 
 	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		//	Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		return err
