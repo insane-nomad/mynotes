@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"mynotes/database"
 	"mynotes/internal/routes"
@@ -15,19 +14,10 @@ import (
 
 func main() {
 	// Create a new database
-	dbErr := (&database.SqlHandler{}).InitDatabase()
-	if dbErr != nil {
-		panic(dbErr)
-	}
+	database.InitDatabase()
 
 	// Create a new engine
 	engine := html.New("./ui/html", ".html")
-	engine.AddFunc(
-		// add unescape function
-		"unescape", func(s string) template.HTML {
-			return template.HTML(s)
-		},
-	)
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{

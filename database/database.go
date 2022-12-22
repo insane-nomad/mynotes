@@ -1,16 +1,11 @@
 package database
 
 import (
-	//	"fmt"
-	// "log"
 	"math"
-
-	// "os"
 	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 const dbName string = "mynotes.db"
@@ -23,76 +18,44 @@ type Note struct {
 
 type notes []Note
 
-type SqlHandler struct {
-	db *gorm.DB
-}
+var Db *gorm.DB
 
-func (s *SqlHandler) InitDatabase() error {
-	var err error
-	s.db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+func InitDatabase() {
+
+	database, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+
 	if err != nil {
-		return err
+		panic("Failed to connect to database!")
 	}
 
-	s.db.AutoMigrate(&Note{})
-	return nil
+	err = database.AutoMigrate(&Note{})
+	if err != nil {
+		return
+	}
+
+	Db = database
 }
 
-func (s *SqlHandler) GetNotes(start int) (notes, int, error) {
-	// newLogger := logger.New(
-	// 	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-	// 	logger.Config{
-	// 		SlowThreshold:             time.Second, // Slow SQL threshold
-	// 		LogLevel:                  logger.Info, // Log level
-	// 		IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
-	// 		Colorful:                  false,       // Disable color
-	// 	},
-	// )
+func GetNotes(start int) (notes, int, error) {
 	var notes notes
-	var err error
 	offset := 10
 	cstart := (start - 1) * offset
 	var pageCount float64
 
-	s.db, err = gorm.Open(sqlite.Open(dbName), &gorm.Config{
-		//		Logger: newLogger,
-	})
-	if err != nil {
-		return notes, 0, err
-	}
-
-	getCount := s.db.Find(&notes)
+	getCount := Db.Find(&notes)
 	pageCount = float64(getCount.RowsAffected) / float64(offset)
 	pageCount = math.Ceil(pageCount)
 
-	s.db.Limit(offset).Offset(cstart).Find(&notes)
+	Db.Limit(offset).Offset(cstart).Find(&notes)
+
 	return notes, int(pageCount), nil
 }
 
-func CreateNote(text string) error {
-	//var newNotes = Note{Text: text}
-
-	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
-	if err != nil {
-		return err
-	}
-	db.Create(&Note{Text: text})
-
-	return nil
+func CreateNote(text string) {
+	Db.Create(&Note{Text: text})
 }
 
-func DelNotes(id int) error {
+func DelNotes(id int) {
 	var notes notes
-
-	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
-		//	Logger: logger.Default.LogMode(logger.Info),
-	})
-	if err != nil {
-		return err
-	}
-
-	db.Delete(&notes, id)
-	return nil
+	Db.Delete(&notes, id)
 }
