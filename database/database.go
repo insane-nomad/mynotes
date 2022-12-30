@@ -16,6 +16,12 @@ type Note struct {
 	Text      string
 }
 
+type User struct {
+	ID       uint `gorm:"primarykey"`
+	Username string
+	Password string
+}
+
 type notes []Note
 
 var Db *gorm.DB
@@ -28,10 +34,11 @@ func InitDatabase() {
 		panic("Failed to connect to database!")
 	}
 
-	err = database.AutoMigrate(&Note{})
+	err = database.AutoMigrate(&Note{}, &User{})
 	if err != nil {
 		return
 	}
+	//database.AutoMigrate(&User{})
 
 	Db = database
 }
@@ -53,6 +60,17 @@ func GetNotes(start int) (notes, int, error) {
 
 func CreateNote(text string) {
 	Db.Create(&Note{Text: text})
+}
+
+func CreateUser(username, password string) error {
+	err := Db.Create(&User{Username: username,
+		Password: password,
+	}).Error
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func DelNotes(id int) {

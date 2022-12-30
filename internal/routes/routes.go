@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"mynotes/database"
 
+	"golang.org/x/crypto/bcrypt"
+
 	//	"os"
 	"strconv"
 	//	"strings"
@@ -117,5 +119,28 @@ func AddnoteHandler(c *fiber.Ctx) error {
 	database.CreateNote(template.HTMLEscaper(c.FormValue("confirmationText")))
 	return c.Render("success", fiber.Map{
 		"Title": "Add note",
+	})
+}
+
+func RegisterHandler(c *fiber.Ctx) error {
+	return c.Render("user/register", fiber.Map{
+		"Title": "Регистрация нового пользователя",
+	})
+}
+
+func AdduserHandler(c *fiber.Ctx) error {
+	password := template.HTMLEscaper(c.FormValue("password"))
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 8)
+	if err != nil {
+		return err
+	}
+	err = database.CreateUser(template.HTMLEscaper(c.FormValue("login")), string(hashedPassword))
+	if err != nil {
+		return c.Render("user/fail", fiber.Map{
+			"Title": "Add user",
+		})
+	}
+	return c.Render("user/success", fiber.Map{
+		"Title": "Add user",
 	})
 }

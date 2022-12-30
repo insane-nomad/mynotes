@@ -41,6 +41,8 @@ func main() {
 
 	// Routes
 	app.Post("/addnote", routes.AddnoteHandler)
+	app.Post("/adduser", routes.AdduserHandler)
+	app.Get("/register", routes.RegisterHandler)
 	app.Get("/", routes.MainPageHandler)
 	app.Get("/layout", routes.LayoutHandler)
 	app.Get("/add", routes.AddHandler)
