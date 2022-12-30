@@ -35,8 +35,8 @@ func main() {
 
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		Format:       "(${time}) - [${ip}]:${port} ${status} - ${method} ${referer} -> ${path}\n",
-		EnableColors: true,
+		Format: "(${time}) - [${ip}]:${port} ${status} - ${method} ${referer} -> ${path}\n",
+		//EnableColors: true,
 	}))
 
 	// Routes
