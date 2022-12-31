@@ -1,15 +1,15 @@
 package routes
 
 import (
-	//	"fmt"
+	"fmt"
 	"html/template"
 	"mynotes/database"
+	"mynotes/internal/user"
+	"strconv"
+
+	//"time"
 
 	"golang.org/x/crypto/bcrypt"
-
-	//	"os"
-	"strconv"
-	//	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -79,6 +79,9 @@ func PaginationHandler(c *fiber.Ctx) error {
 }
 
 func MainPageHandler(c *fiber.Ctx) error {
+
+	fmt.Println(user.IsLogged(c))
+
 	var pages []int
 	result, pageCounter, _ := database.GetNotes(0)
 
@@ -137,10 +140,34 @@ func AdduserHandler(c *fiber.Ctx) error {
 	err = database.CreateUser(template.HTMLEscaper(c.FormValue("login")), string(hashedPassword))
 	if err != nil {
 		return c.Render("user/fail", fiber.Map{
-			"Title": "Add user",
+			"Title":   "Add user",
+			"Message": "Что-то пошло не так",
 		})
 	}
 	return c.Render("user/success", fiber.Map{
-		"Title": "Add user",
+		"Title":   "Add user",
+		"Message": "Вы успешно зарегистрировались",
 	})
+}
+
+func LoginHandler(c *fiber.Ctx) error {
+	login := template.HTMLEscaper(c.FormValue("login"))
+	password := template.HTMLEscaper(c.FormValue("password"))
+
+	isLogged := database.Login(login, password)
+
+	if isLogged {
+
+		user.SetCookie(c, &login)
+
+		return c.Render("user/success", fiber.Map{
+			"Title":   "Add user",
+			"Message": "Вы успешно залогинились",
+		})
+	} else {
+		return c.Render("user/fail", fiber.Map{
+			"Title":   "Add user",
+			"Message": "Неверный логин или пароль",
+		})
+	}
 }

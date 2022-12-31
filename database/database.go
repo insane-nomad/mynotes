@@ -1,11 +1,15 @@
 package database
 
 import (
+	//"log"
 	"math"
+	//"os"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	//"gorm.io/gorm/logger"
 )
 
 const dbName string = "mynotes.db"
@@ -27,8 +31,19 @@ type notes []Note
 var Db *gorm.DB
 
 func InitDatabase() {
+	// newLogger := logger.New(
+	// 	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	// 	logger.Config{
+	// 		SlowThreshold:             time.Second, // Slow SQL threshold
+	// 		LogLevel:                  logger.Info, // Log level
+	// 		IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
+	// 		Colorful:                  false,       // Disable color
+	// 	},
+	// )
 
-	database, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+	database, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
+		// Logger: newLogger,
+	})
 
 	if err != nil {
 		panic("Failed to connect to database!")
@@ -62,6 +77,11 @@ func CreateNote(text string) {
 	Db.Create(&Note{Text: text})
 }
 
+func DelNotes(id int) {
+	var notes notes
+	Db.Delete(&notes, id)
+}
+
 func CreateUser(username, password string) error {
 	err := Db.Create(&User{Username: username,
 		Password: password,
@@ -73,7 +93,13 @@ func CreateUser(username, password string) error {
 	return nil
 }
 
-func DelNotes(id int) {
-	var notes notes
-	Db.Delete(&notes, id)
+func Login(username, password string) bool {
+	var user User
+	Db.Where("username = ?", username).First(&user)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return false
+	}
+	return true
+
 }
