@@ -4,6 +4,7 @@ import (
 	//"log"
 	"math"
 	//"os"
+	"mynotes/internal/cookie"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -24,6 +25,13 @@ type User struct {
 	ID       uint `gorm:"primarykey"`
 	Username string
 	Password string
+}
+
+type Session struct {
+	ID       uint `gorm:"primarykey"`
+	Session  string
+	Username string
+	Expiry   time.Time
 }
 
 type notes []Note
@@ -49,7 +57,7 @@ func InitDatabase() {
 		panic("Failed to connect to database!")
 	}
 
-	err = database.AutoMigrate(&Note{}, &User{})
+	err = database.AutoMigrate(&Note{}, &User{}, &Session{})
 	if err != nil {
 		return
 	}
@@ -101,5 +109,35 @@ func Login(username, password string) bool {
 		return false
 	}
 	return true
+}
 
+func CreateSession(sessionToken, username string, expire time.Time) error {
+	err := Db.Create(&Session{
+		Session:  sessionToken,
+		Username: username,
+		Expiry:   expire,
+	}).Error
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetSessionData(sessionToken string) (string, string, time.Time) {
+	var sess Session
+	if sessionToken == "" {
+		return "", "", time.Date(2000, 11, 14, 16, 45, 16, 36, time.UTC)
+	}
+	Db.Where("session = ?", sessionToken).First(&sess)
+	return sess.Session, sess.Username, sess.Expiry
+
+}
+
+func DelSession(sessionToken string) {
+	Db.Delete(&Session{}, "session LIKE ?", sessionToken)
+}
+
+func DelOldSession() {
+	Db.Delete(&Session{}, "expiry < '?'", time.Now().Add(-cookie.LifeTime))
 }

@@ -13,25 +13,39 @@
     <!-- Custom styles for this template -->
     <link href="/ui/html/static/css/narrow-jumbotron.css" rel="stylesheet">
   </head>
-
   <body>
-
     <div class="container">
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills float-right">
+          
             <li class="nav-item">
               <a class="nav-link" href="/">Главная<span class="sr-only"></span></a>
             </li>
+            {{if .isLogged}}
             <li class="nav-item">
-              <a class="nav-link" href="/add">Add note</a>
+              <a class="nav-link" href="/add">Добавить заметку</a>
             </li>
+            {{end}}
+            
+            {{if not .isLogged}}
+            <li class="nav-item">
+              <a class="nav-link" href="/register">Регистрация</a>
+            </li>
+            {{end}}
+            
+            
           </ul>
         </nav>
         <h3 class="text-muted">Заметки</h3>
       </div>
-      
- <form action="/login" class="form-inline" id="confirmationForm" name="confirmationForm" method="post">
+{{if .isLogged}}
+<div class="alert alert-info" role="alert">
+ Привет, {{.username}} <a class="btn btn-outline-info btn-sm float-right" role="button" href="/logout">Выйти</a>
+</div>
+
+ {{else}}
+ <form action="/login" class="form-inline" method="post">
   <div class="form-group mb-2">
       <label for="login">Логин:&nbsp;&nbsp;&nbsp;</label>
       <input type="login" class="form-control" id="login" name="login" placeholder="Введите логин">
@@ -42,3 +56,4 @@
   </div>
   <button type="submit" class="btn btn-primary mb-2">Войти</button>
 </form>  
+{{end}}

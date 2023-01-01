@@ -36,17 +36,16 @@ func main() {
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
 		Format: "(${time}) - [${ip}]:${port} ${status} - ${method} ${referer} -> ${path}\n",
-		//EnableColors: true,
 	}))
 
 	// Routes
-	app.Post("/addnote", routes.AddnoteHandler)
+	app.Post("/savenote", routes.SavenoteHandler)
 	app.Post("/adduser", routes.AdduserHandler)
 	app.Post("/login", routes.LoginHandler)
 	app.Get("/register", routes.RegisterHandler)
+	app.Get("/logout", routes.LogoutHandler)
 	app.Get("/", routes.MainPageHandler)
-	app.Get("/layout", routes.LayoutHandler)
-	app.Get("/add", routes.AddHandler)
+	app.Get("/add", routes.AddnoteHandler)
 	app.Get("/pages/:id<range(1,1000)>", routes.PaginationHandler)
 	app.Get("/delnote/:id<range(1,10000)>", routes.DelNoteHandler)
 

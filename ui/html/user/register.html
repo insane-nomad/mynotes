@@ -1,6 +1,11 @@
 {{template "partials/header" .}}
+{{if .isLogged}}
+<div class="alert alert-warning" role="alert">
+  Вы авторизированы! </br>Сначала нужно выйти из своего аккаунта
+</div>
+{{else}}
 
-<form action="/adduser" id="confirmationForm" name="confirmationForm" method="post">
+<form action="/adduser" id="registrationform" name="registrationform" method="post">
   <div class="form-group">
     <label for="login">Логин</label>
     <input type="login" class="form-control" id="login" name="login" placeholder="Введите логин">
@@ -14,6 +19,6 @@
 
 </p>
 </br></br>
-
+{{end}}
 
 {{template "partials/footer" .}}

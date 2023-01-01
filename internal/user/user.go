@@ -1,66 +1,43 @@
 package user
 
 import (
-	"fmt"
+	"mynotes/database"
+	mycookie "mynotes/internal/cookie"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-var Sessions = map[string]session{}
-
-// each session contains the username of the user and the time at which it expires
-type session struct {
-	username string
-	expiry   time.Time
-}
-
-func (s session) IsExpired() bool {
-	return s.expiry.Before(time.Now())
-}
-
-func (s session) IsLogged() bool {
-	return !s.expiry.Before(time.Now())
-}
-
 func SetCookie(c *fiber.Ctx, login *string) {
 	sessionToken := uuid.NewString()
-	expiresAt := time.Now().Add(30 * time.Second)
+	expiresAt := time.Now().Add(mycookie.LifeTime)
 
 	cookie := new(fiber.Cookie)
-	cookie.Name = "mycookie"
+	cookie.Name = mycookie.Name
 	cookie.Value = sessionToken
 	cookie.Expires = expiresAt
 	c.Cookie(cookie)
 
-	Sessions[sessionToken] = session{
-		username: *login,
-		expiry:   expiresAt,
-	}
+	database.CreateSession(sessionToken, *login, expiresAt)
+
 }
 
-func IsLogged(c *fiber.Ctx) bool {
-	sessionToken := c.Cookies("mycookie")
-	userSession, exists := Sessions[sessionToken]
+func ClearCookie(c *fiber.Ctx) {
+	sessionToken := c.Cookies(mycookie.Name)
 
-	if !exists {
-		// пользователь не авторизован
-		return false
-	}
+	cookie := new(fiber.Cookie)
+	cookie.Name = mycookie.Name
+	cookie.Value = ""
+	cookie.Expires = time.Now()
+	c.Cookie(cookie)
 
-	if userSession.IsExpired() {
-		delete(Sessions, sessionToken)
-		return false
-	}
+	database.DelSession(sessionToken)
+	database.DelOldSession()
+}
 
-	fmt.Println(userSession.IsExpired())
-	fmt.Println("-------------")
-	fmt.Println(sessionToken)
-	fmt.Println("-------------")
-	fmt.Println(Sessions[c.Cookies("mycookie")])
-	fmt.Println("-------------")
-	//fmt.Println(IsLogged(c))
-
-	return true
+func IsLogged(c *fiber.Ctx) (string, bool) {
+	sessionToken := c.Cookies(mycookie.Name)
+	_, user, expire := database.GetSessionData(sessionToken)
+	return user, !expire.Before(time.Now())
 }

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"fmt"
+	//	"fmt"
 	"html/template"
 	"mynotes/database"
 	"mynotes/internal/user"
@@ -23,10 +23,13 @@ func DelNoteHandler(c *fiber.Ctx) error {
 	}
 
 	database.DelNotes(id)
+	username, isLogged := user.IsLogged(c)
 
 	return c.Render("deleted", fiber.Map{
-		"Title": "Add note",
-		"ID":    id,
+		"Title":    "Add note",
+		"ID":       id,
+		"isLogged": isLogged,
+		"username": username,
 	})
 	//fmt.Fprintf(c, "%v\n", id)
 	//return nil
@@ -66,8 +69,12 @@ func PaginationHandler(c *fiber.Ctx) error {
 	}
 	//fmt.Fprintf(os.Stdout, "%v\n", NotLastPage)
 
+	username, isLogged := user.IsLogged(c)
+
 	return c.Render("index", fiber.Map{
 		"Title":        "Заметки. Страница " + strconv.Itoa(id),
+		"isLogged":     isLogged,
+		"username":     username,
 		"result":       result,
 		"pages":        pages,
 		"NotFirstPage": NotFirstPage,
@@ -79,9 +86,6 @@ func PaginationHandler(c *fiber.Ctx) error {
 }
 
 func MainPageHandler(c *fiber.Ctx) error {
-
-	fmt.Println(user.IsLogged(c))
-
 	var pages []int
 	result, pageCounter, _ := database.GetNotes(0)
 
@@ -89,8 +93,12 @@ func MainPageHandler(c *fiber.Ctx) error {
 		pages = append(pages, i)
 	}
 
+	username, isLogged := user.IsLogged(c)
+
 	return c.Render("index", fiber.Map{
 		"Title":        "Заметки",
+		"isLogged":     isLogged,
+		"username":     username,
 		"result":       result,
 		"pages":        pages,
 		"NotFirstPage": false,
@@ -99,35 +107,51 @@ func MainPageHandler(c *fiber.Ctx) error {
 	})
 }
 
-func AddHandler(c *fiber.Ctx) error {
+func AddnoteHandler(c *fiber.Ctx) error {
+	username, isLogged := user.IsLogged(c)
 	return c.Render("add", fiber.Map{
-		"Title": "Add note",
+		"isLogged": isLogged,
+		"username": username,
+		"Title":    "Add note",
 	})
 }
 
 func LayoutHandler(c *fiber.Ctx) error {
+	username, isLogged := user.IsLogged(c)
 	return c.Render("index2", fiber.Map{
-		"Title": "Hello, World!",
+		"isLogged": isLogged,
+		"username": username,
+		"Title":    "Hello, World!",
 	}, "layouts/main")
 }
 
 func Return404Handler(c *fiber.Ctx) error {
+	username, isLogged := user.IsLogged(c)
 	return c.Status(fiber.StatusNotFound).Render("errors/404", fiber.Map{
-		"Error": error404,
-		"Title": error404,
+		"isLogged": isLogged,
+		"username": username,
+		"Error":    error404,
+		"Title":    error404,
 	})
 }
 
-func AddnoteHandler(c *fiber.Ctx) error {
-	database.CreateNote(template.HTMLEscaper(c.FormValue("confirmationText")))
+func SavenoteHandler(c *fiber.Ctx) error {
+
+	database.CreateNote(template.HTMLEscaper(c.FormValue("notestext")))
+	username, isLogged := user.IsLogged(c)
 	return c.Render("success", fiber.Map{
-		"Title": "Add note",
+		"isLogged": isLogged,
+		"username": username,
+		"Title":    "Add note",
 	})
 }
 
 func RegisterHandler(c *fiber.Ctx) error {
+	username, isLogged := user.IsLogged(c)
 	return c.Render("user/register", fiber.Map{
-		"Title": "Регистрация нового пользователя",
+		"isLogged": isLogged,
+		"username": username,
+		"Title":    "Регистрация нового пользователя",
 	})
 }
 
@@ -154,15 +178,15 @@ func LoginHandler(c *fiber.Ctx) error {
 	login := template.HTMLEscaper(c.FormValue("login"))
 	password := template.HTMLEscaper(c.FormValue("password"))
 
-	isLogged := database.Login(login, password)
+	enter := database.Login(login, password)
 
-	if isLogged {
-
+	if enter {
 		user.SetCookie(c, &login)
-
 		return c.Render("user/success", fiber.Map{
-			"Title":   "Add user",
-			"Message": "Вы успешно залогинились",
+			"isLogged": enter,
+			"username": login,
+			"Title":    "Add user",
+			"Message":  "Вы успешно залогинились",
 		})
 	} else {
 		return c.Render("user/fail", fiber.Map{
@@ -170,4 +194,10 @@ func LoginHandler(c *fiber.Ctx) error {
 			"Message": "Неверный логин или пароль",
 		})
 	}
+}
+
+func LogoutHandler(c *fiber.Ctx) error {
+	user.ClearCookie(c)
+	return c.Redirect("/")
+
 }
