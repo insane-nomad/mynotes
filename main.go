@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/template/html"
 )
@@ -48,6 +49,15 @@ func main() {
 	app.Get("/add", routes.AddnoteHandler)
 	app.Get("/pages/:id<range(1,1000)>", routes.PaginationHandler)
 	app.Get("/delnote/:id<range(1,10000)>", routes.DelNoteHandler)
+	app.Get("/metrics", monitor.New(monitor.Config{
+		Title:      "Fiber Monitor",
+		Refresh:    1 * time.Second,
+		APIOnly:    false,
+		Next:       nil,
+		CustomHead: "",
+		FontURL:    "https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&display=swap",
+		ChartJsURL: "https://cdn.jsdelivr.net/npm/chart.js@2.9/dist/Chart.bundle.min.js",
+	}))
 
 	app.Use(routes.Return404Handler)
 

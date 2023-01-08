@@ -1,17 +1,13 @@
 package routes
 
 import (
-	//	"fmt"
 	"html/template"
 	"mynotes/database"
 	"mynotes/internal/user"
 	"strconv"
 
-	//"time"
-
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const error404 string = "Error 404. Not found!"

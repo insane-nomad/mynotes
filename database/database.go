@@ -48,7 +48,6 @@ func InitDatabase() {
 	// 		Colorful:                  false,       // Disable color
 	// 	},
 	// )
-
 	database, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
 		// Logger: newLogger,
 	})

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"mynotes/database"
 	mycookie "mynotes/internal/cookie"
 	"time"
@@ -19,7 +20,10 @@ func SetCookie(c *fiber.Ctx, login *string) {
 	cookie.Expires = expiresAt
 	c.Cookie(cookie)
 
-	database.CreateSession(sessionToken, *login, expiresAt)
+	err := database.CreateSession(sessionToken, *login, expiresAt)
+	if err != nil {
+		fmt.Printf("Seesion create error: %v", err)
+	}
 
 }
 
